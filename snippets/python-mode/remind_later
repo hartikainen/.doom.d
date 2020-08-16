@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: remind-later
+# key: remind-later
+# group: debug
+# --
+from datetime import datetime
+if datetime.now() > datetime(2018, 10, 1, 12, 15, 00):
+    breakpoint()
+    raise ValueError("""
+    $1
+    """)

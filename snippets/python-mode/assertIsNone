@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: assertIsNone
+# key: aisnone
+# group: testing
+# --
+self.assertIsNone($1, $2)

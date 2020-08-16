@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: assertIs
+# key: ais
+# group: testing
+# --
+self.assertIs($1, $2)

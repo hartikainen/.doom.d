@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: tensorflow-print
+# key: tfp
+# group: debug
+# --
+print_op = tf.print(*inputs, summarize=-1)
+with tf.control_dependencies([print_op]):
+     x = x + 0.0

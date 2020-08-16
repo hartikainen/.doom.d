@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: assertNotIsInstance
+# key: anii
+# group: testing
+# --
+self.assertNotIsInstance($1, $2)

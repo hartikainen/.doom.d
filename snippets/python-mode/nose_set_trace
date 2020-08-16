@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: nosetrace
+# key: ntr
+# group: debug
+# --
+from nose.tools import set_trace; from pprint import pprint; set_trace()

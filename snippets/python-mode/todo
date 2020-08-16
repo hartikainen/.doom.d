@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: todo
+# key: todo
+# group: general
+# --
+# TODO(hartikainen): $1

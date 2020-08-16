@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: nie
+# key: nie
+# group: general
+# --
+raise NotImplementedError("TODO(hartikainen): $1")

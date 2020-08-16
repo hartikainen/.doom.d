@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: note
+# key: note
+# group: general
+# --
+# NOTE(hartikainen): $1

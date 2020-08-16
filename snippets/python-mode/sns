@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: sns
+# key: sns
+# group : visualization
+# --
+import seaborn as sns
+$0

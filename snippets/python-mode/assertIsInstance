@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: assertIsInstance
+# key: aii
+# group: testing
+# --
+self.assertIsInstance($1, $2)

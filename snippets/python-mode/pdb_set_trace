@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: pdbtrace
+# key: pdb
+# group: debug
+# --
+import ipdb; ipdb.set_trace(context=30)
