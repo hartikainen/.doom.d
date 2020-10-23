@@ -71,3 +71,6 @@ Interactively, N is the prefix arg."
   )
 
 (map! :gi "C-a" #'beginning-or-indentation)
+
+(after! ws-butler
+  (setq ws-butler-keep-whitespace-before-point nil))
