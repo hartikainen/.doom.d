@@ -56,6 +56,9 @@
 
 (load! "functions.el")
 
+
+(after! conda
+  (setq conda-env-home-directory (expand-file-name "~/conda/")))
 (after! flycheck
   (set-face-attribute 'flycheck-warning nil
                       :background nil
