@@ -56,6 +56,16 @@
 
 (load! "functions.el")
 
+(after! flycheck
+  (set-face-attribute 'flycheck-warning nil
+                      :background nil
+                      :foreground "red"
+                      :underline '(:color "red" :style wave))
+  (set-face-attribute 'flycheck-error nil
+                      :background nil
+                      :foreground "red"
+                      :underline t))
+
 (defun beginning-or-indentation (&optional n)
   "Move cursor to beginning of this line or to its indentation.
 If at indentation position of this line, move to beginning of line.
