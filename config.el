@@ -55,3 +55,19 @@
 ;; they are implemented.
 
 (load! "functions.el")
+
+(defun beginning-or-indentation (&optional n)
+  "Move cursor to beginning of this line or to its indentation.
+If at indentation position of this line, move to beginning of line.
+If at beginning of line, move to beginning of previous line.
+Else, move to indentation position of this line.
+
+With arg N, move backward to the beginning of the Nth previous line.
+Interactively, N is the prefix arg."
+  (interactive "P")
+  (let ((previous-point (point)))
+    (back-to-indentation)
+    (if (equal (point) previous-point) (move-beginning-of-line 1)))
+  )
+
+(map! :gi "C-a" #'beginning-or-indentation)
