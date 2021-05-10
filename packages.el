@@ -50,3 +50,6 @@
 ;(unpin! t)
 
 (package! magit-gitflow :disable t)
+
+(package! doom-snippets :ignore t)
+(package! yasnippet-snippets)
