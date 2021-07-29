@@ -4,8 +4,6 @@
 # group: debug
 # --
 from datetime import datetime
-if datetime.now() > datetime(2018, 10, 1, 12, 15, 00):
+if datetime(`(format-time-string "%Y, %-m, %-d, %-H, %-M, %S")`) < datetime.now():
     breakpoint()
-    raise ValueError("""
-    $1
-    """)
+    raise ValueError("""$1""")
