@@ -1,6 +1,0 @@
-# -*- mode: snippet -*-
-# name: try_except
-# key: try
-# group: debug
-# --
-import ipdb; ipdb.set_trace(context=30)
