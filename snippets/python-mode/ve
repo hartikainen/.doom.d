@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: ve
+# key: ve
+# group: general
+# --
+raise ValueError("$1")
