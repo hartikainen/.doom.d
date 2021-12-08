@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: subplots
+# uuid: subplots
+# key: subplots
+# condition: t
+# group: visualization
+# --
+import matplotlib.pyplot as plt
+num_rows = ${1:1}
+num_cols = ${2:1}
+figure_scale = ${3:4.0}
+figsize = figure_scale * plt.figaspect(num_rows / num_cols)
+figure, axes = plt.subplots(num_rows, num_cols, figsize=figsize)
+axes = np.atleast_1d(axes)
