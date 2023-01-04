@@ -92,3 +92,6 @@ Interactively, N is the prefix arg."
 
 (after! ivy
   (define-key ivy-minibuffer-map (kbd "TAB") #'ivy-partial-or-done))
+
+(set-file-template! ".*\.rs$" :trigger "__.rs" :mode 'rust-mode)
+(set-file-template! ".*\.py$" :trigger "__" :mode 'python-mode)
