@@ -49,6 +49,7 @@
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
 
+(package! anaconda-mode :disable t)
 (package! magit-gitflow :disable t)
 
 (package! doom-snippets :ignore t)
