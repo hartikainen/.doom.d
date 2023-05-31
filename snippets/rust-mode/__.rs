@@ -1,3 +1,6 @@
+# -*- mode: snippet -*-
+# name: rust-default-file
+# --
 // mod x;
 // use a::b as bb;
 
