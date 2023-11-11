@@ -54,3 +54,8 @@
 
 (package! doom-snippets :ignore t)
 (package! yasnippet-snippets)
+
+(unpin! eglot)
+
+(package! copilot
+  :recipe (:host github :repo "zerolfx/copilot.el" :files ("*.el" "dist")))

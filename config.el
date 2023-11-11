@@ -98,3 +98,11 @@ Interactively, N is the prefix arg."
    `(("/.+\.rs$" :trigger "__.rs" :mode 'rust-mode)
     ("/__init__\.py$" :trigger "____init__.py" :mode 'python-mode)
     ("/.+\.py$" :trigger "__.py" :mode 'python-mode))))
+;; accept completion from copilot and fallback to company
+(use-package! copilot
+  :hook (prog-mode . copilot-mode)
+  :bind (:map copilot-completion-map
+              ("<tab>" . 'copilot-accept-completion)
+              ("TAB" . 'copilot-accept-completion)
+              ("C-TAB" . 'copilot-accept-completion-by-word)
+              ("C-<tab>" . 'copilot-accept-completion-by-word)))
