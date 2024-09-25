@@ -1,0 +1,30 @@
+# -*- mode: snippet -*-
+# name: python-default-library
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region 'nil))
+# --
+"""Module documentation."""
+
+import dataclasses
+from typing import Any, Callable, Literal, Optional
+
+import numpy as np
+import numpy.typing as npt
+import tree
+
+
+@dataclasses.dataclass
+class Config:
+    param1: int = 0
+    param2: str = "default_value"
+
+
+class MyLibraryClass:
+    def __init__(self, config: Config):
+        self.config = config
+
+    def some_method(self, data: npt.ArrayLike) -> npt.ArrayLike:
+        return np.array(data) * self.config.param1
+
+
+def some_function(data: npt.ArrayLike, factor: float) -> npt.ArrayLike:
+    return np.array(data) * factor
