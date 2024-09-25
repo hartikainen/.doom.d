@@ -1,7 +1,8 @@
 # -*- mode: snippet -*-
-# name: python-default-file
+# name: python-default-runnable
+# expand-env: ((yas-indent-line 'fixed) (yas-wrap-around-region 'nil))
 # --
-"""Module documentation."""
+"""Runnable documentation."""
 
 import pathlib
 from typing import Any, Callable, Literal, Optional
