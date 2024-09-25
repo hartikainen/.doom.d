@@ -3,4 +3,4 @@
 # key: note
 # group: general
 # --
-# NOTE(hartikainen): $1
+`(yas-with-comment "NOTE(hartikainen): ")`

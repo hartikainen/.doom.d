@@ -116,10 +116,15 @@ Interactively, N is the prefix arg."
   (define-key ivy-minibuffer-map (kbd "TAB") #'ivy-partial-or-done))
 
 (after! (yasnippet)
+  ;; Define custom yasnippet-related functions
+  (defun yas-with-comment (str)
+    (format "%s%s%s" (or comment-start "# ") str (or comment-end "")))
+
   (set-file-templates!
    `(("/.+\.rs$" :trigger "__.rs" :mode 'rust-mode)
     ("/__init__\.py$" :trigger "____init__.py" :mode 'python-mode)
     ("/.+\.py$" :trigger "__.py" :mode 'python-mode))))
+
 ;; accept completion from copilot and fallback to company
 (use-package! copilot
   :hook (prog-mode . copilot-mode)

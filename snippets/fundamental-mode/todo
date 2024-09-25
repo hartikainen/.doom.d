@@ -3,4 +3,4 @@
 # key: todo
 # group: general
 # --
-# TODO(hartikainen): $1
+`(yas-with-comment "TODO(hartikainen): ")`
