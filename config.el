@@ -115,6 +115,11 @@ Interactively, N is the prefix arg."
 (after! ivy
   (define-key ivy-minibuffer-map (kbd "TAB") #'ivy-partial-or-done))
 
+(after! (projectile persp-mode)
+  (setq projectile-project-search-path '(("~/github" . 2)))
+  ;; (setq +workspaces-switch-project-function #'magit-status)
+  (setq +workspaces-switch-project-function (lambda (&rest _) (call-interactively #'projectile-commander))))
+
 (after! yasnippet
   ;; Define custom yasnippet-related functions
   (defun yas-with-comment (str)
