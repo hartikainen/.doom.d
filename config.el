@@ -124,7 +124,7 @@ Interactively, N is the prefix arg."
   ;; Define custom yasnippet-related functions
   (defun yas-with-comment (str)
     (format "%s%s%s" (or comment-start "# ") str (or comment-end "")))
-
+  (setq yas-indent-line 'fixed)
   (set-file-template! ".+\\.rs$" :trigger "__.rs" :mode 'rust-mode)
   (set-file-template! ".+\\.py$" :trigger "default_runnable" :mode 'python-mode)
   (set-file-template! "__init__\\.py$" :trigger "____init__.py" :mode 'python-mode))
