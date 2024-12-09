@@ -59,3 +59,6 @@
 
 (package! copilot
   :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
+
+(package! bazel-mode
+  :recipe (:host github :repo "bazelbuild/emacs-bazel-mode"))
