@@ -150,3 +150,9 @@ Interactively, N is the prefix arg."
   ;; disable format-all because it doesn't sort BUILD list variables
   (setq bazel-mode-buildifier-before-save t)
   (appendq! +format-on-save-enabled-modes '(bazel-mode)))
+(use-package! gptel
+  :config
+  (setq gptel-model 'gpt-4o)
+  (setq auth-sources '("~/.authinfo"))
+  (setq gptel-api-key (auth-source-pick-first-password :host "api.openai.com"))
+  (gptel-make-gemini "Gemini" :key (auth-source-pick-first-password :host "generativelanguage.googleapis.com") :stream t))
