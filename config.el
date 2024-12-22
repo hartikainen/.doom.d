@@ -150,6 +150,19 @@ Interactively, N is the prefix arg."
   ;; disable format-all because it doesn't sort BUILD list variables
   (setq bazel-mode-buildifier-before-save t)
   (appendq! +format-on-save-enabled-modes '(bazel-mode)))
+
+(after! (:and apheleia python)
+  (setf (alist-get 'python-mode apheleia-mode-alist) '(ruff-isort ruff))
+  (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
+
+(after! python
+  (add-hook! 'python-mode-hook #'flymake-ruff-load))
+
+(after! eglot
+  (add-to-list 'eglot-server-programs
+               '((python-mode python-ts-mode)
+                 "basedpyright-langserver" "--stdio")))
+
 (use-package! gptel
   :config
   (setq gptel-model 'gpt-4o)

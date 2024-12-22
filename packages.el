@@ -50,12 +50,14 @@
 ;; (unpin! t)
 
 (package! anaconda-mode :disable t)
+(package! pyimport :disable t)  ;; use ruff and apheleia instead
+(package! py-isort :disable t)  ;; use ruff and apheleia instead
 (package! magit-gitflow :disable t)
 
 (package! doom-snippets :ignore t)
 (package! yasnippet-snippets)
 
-(unpin! eglot)
+(package! flymake-ruff)
 
 (package! copilot
   :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
