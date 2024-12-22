@@ -127,6 +127,7 @@ Interactively, N is the prefix arg."
   (setq yas-indent-line 'fixed)
   (set-file-template! ".+\\.rs$" :trigger "__.rs" :mode 'rust-mode)
   (set-file-template! ".+\\.py$" :trigger "default_runnable" :mode 'python-mode)
+  (set-file-template! ".+_test\\.py$" :trigger "absl_test" :mode 'python-mode)
   (set-file-template! "__init__\\.py$" :trigger "____init__.py" :mode 'python-mode))
 
 ;; accept completion from copilot and fallback to company
