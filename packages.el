@@ -65,4 +65,8 @@
 (package! bazel-mode
   :recipe (:host github :repo "bazelbuild/emacs-bazel-mode"))
 
-(package! gptel)
+(package! bazel-mode
+  :recipe (:host github :repo "bazelbuild/emacs-bazel-mode"))
+
+(package! gptel
+  :recipe (:host github :repo "karthink/gptel"))
