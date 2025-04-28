@@ -166,7 +166,10 @@ Interactively, N is the prefix arg."
 
 (use-package! gptel
   :config
-  (setq gptel-model 'gpt-4o)
+  (setq
+   gptel-model 'gemini-2.5-pro-exp-03-25
+   gptel-backend (gptel-make-gemini "Gemini"
+                   :key (auth-source-pick-first-password :host "generativelanguage.googleapis.com")
+                   :stream t))
   (setq auth-sources '("~/.authinfo"))
-  (setq gptel-api-key (auth-source-pick-first-password :host "api.openai.com"))
-  (gptel-make-gemini "Gemini" :key (auth-source-pick-first-password :host "generativelanguage.googleapis.com") :stream t))
+  (setq gptel-api-key (auth-source-pick-first-password :host "api.openai.com")))
