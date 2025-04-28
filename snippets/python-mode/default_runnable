@@ -5,15 +5,16 @@
 """Runnable documentation."""
 
 import dataclasses
-from typing import Any, Callable, Literal, Optional
+import time
+from typing import Callable, Literal
 
 from absl import app
 from absl import logging
 from etils import eapp
 from etils import epath
+import jax
+import jax.numpy as jnp
 import numpy as np
-import numpy.typing as npt
-import tree
 
 
 Path = epath.Path
