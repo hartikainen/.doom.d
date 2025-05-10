@@ -164,8 +164,7 @@ Interactively, N is the prefix arg."
                '((python-mode python-ts-mode)
                  "basedpyright-langserver" "--stdio")))
 
-(use-package! gptel
-  :config
+(after! gptel
   (setq
    gptel-model 'gemini-2.5-pro-exp-03-25
    gptel-backend (gptel-make-gemini "Gemini"
