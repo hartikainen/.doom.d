@@ -164,11 +164,29 @@ Interactively, N is the prefix arg."
                '((python-mode python-ts-mode)
                  "basedpyright-langserver" "--stdio")))
 
-(after! gptel
-  (setq
-   gptel-model 'gemini-2.5-pro-exp-03-25
-   gptel-backend (gptel-make-gemini "Gemini"
-                   :key (auth-source-pick-first-password :host "generativelanguage.googleapis.com")
-                   :stream t))
-  (setq auth-sources '("~/.authinfo"))
-  (setq gptel-api-key (auth-source-pick-first-password :host "api.openai.com")))
+(use-package! gptel
+  :config
+  (setq auth-sources '("~/.authinfo.gpg" "~/.authinfo"))
+
+  ;; --- Backend Configuration ---
+  (setq gptel-backend (gptel-make-gemini "Gemini"
+                        :key (auth-source-pick-first-password :host "generativelanguage.googleapis.com")
+                        :stream t))
+
+  ;; --- Model Selection ---
+  ;; Set your preferred default model. You can easily switch models interactively.
+  (setq gptel-model 'gemini-2.5-pro-preview-05-06)
+
+  ;; --- User Experience Tweaks ---
+  ;; Automatically scroll to the end of the response as it's being generated
+  ;; (setq gptel-streaming-scroll-to-end t)
+
+  ;; Use a transient menu for gptel commands for a more interactive experience
+  (setq gptel-use-transient t)
+
+  ;; --- Keybindings ---
+  ;; Bind gptel-send to a convenient key combination
+  ;; (map! :leader
+  ;;       :prefix ("x" . "XXX")
+  ;;       "g" #'gptel-send)
+  )
