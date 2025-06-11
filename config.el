@@ -175,7 +175,7 @@ Interactively, N is the prefix arg."
 
   ;; --- Model Selection ---
   ;; Set your preferred default model. You can easily switch models interactively.
-  (setq gptel-model 'gemini-2.5-pro-preview-05-06)
+  (setq gptel-model 'gemini-2.5-pro)
 
   ;; --- User Experience Tweaks ---
   ;; Automatically scroll to the end of the response as it's being generated
@@ -183,6 +183,7 @@ Interactively, N is the prefix arg."
 
   ;; Use a transient menu for gptel commands for a more interactive experience
   (setq gptel-use-transient t)
+  (setq gptel-include-reasoning nil)
 
   ;; --- Keybindings ---
   ;; Bind gptel-send to a convenient key combination
