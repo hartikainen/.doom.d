@@ -93,6 +93,9 @@
                       :foreground "red"
                       :underline t))
 
+(after! grep
+  (add-to-list 'grep-find-ignored-directories ".venv"))
+
 (defun beginning-or-indentation (&optional n)
   "Move cursor to beginning of this line or to its indentation.
 If at indentation position of this line, move to beginning of line.
