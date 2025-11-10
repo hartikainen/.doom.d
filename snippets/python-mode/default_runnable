@@ -15,14 +15,15 @@ from etils import epath
 import jax
 import jax.numpy as jnp
 import numpy as np
-
+import simple_parsing
 
 Path = epath.Path
+
 
 @dataclasses.dataclass
 class Args:
     enum: Literal["A", "B"] = "A"
-    path: Optional[Path] = None
+    path: Path | None = None
     float_: float = 0.0
 
 
@@ -36,4 +37,12 @@ def main(args: Args):
 
 if __name__ == "__main__":
     eapp.better_logging()
-    app.run(main, flags_parser=eapp.make_flags_parser(Args))
+    app.run(
+        main,
+        flags_parser=eapp.make_flags_parser(
+            Args,
+            conflict_resolution=simple_parsing.ConflictResolution.ALWAYS_MERGE,
+            argument_generation_mode=simple_parsing.ArgumentGenerationMode.NESTED,
+            nested_mode=simple_parsing.NestedMode.WITHOUT_ROOT,
+        ),
+    )
