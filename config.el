@@ -160,12 +160,11 @@ Interactively, N is the prefix arg."
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
 
 (after! python
-  (add-hook! 'python-mode-hook #'flymake-ruff-load))
+  (add-hook! 'python-mode-hook #'flymake-ruff-load)
+  (set-formatter! 'ruff '("ruff" "format" "--stdin-filename" "$1" "-") :modes '(python-mode python-ts-mode))
+  (setq-hook! '(python-mode-hook python-ts-mode-hook) +format-with 'ruff))
 
-(after! eglot
-  (add-to-list 'eglot-server-programs
-               '((python-mode python-ts-mode)
-                 "basedpyright-langserver" "--stdio")))
+(set-eglot-client! '(python-mode python-ts-mode) '("ty" "server"))
 
 (use-package! gptel
   :config
