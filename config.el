@@ -193,3 +193,7 @@ Interactively, N is the prefix arg."
   ;;       :prefix ("x" . "XXX")
   ;;       "g" #'gptel-send)
   )
+
+;; Workaround: `yaml-ts-mode' (Emacs 29+) does not define `yaml-indent-offset',
+;; which causes errors in packages like `dtrt-indent' and `editorconfig'.
+(defvar yaml-indent-offset 2 "Fallback for packages expecting yaml-mode variables in yaml-ts-mode.")
