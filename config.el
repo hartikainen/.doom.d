@@ -134,9 +134,21 @@ Interactively, N is the prefix arg."
   (set-file-template! "__init__\\.py$" :trigger "____init__.py" :mode 'python-mode))
 
 ;; accept completion from copilot and fallback to company
+(defun my/copilot-safe-turn-on ()
+  "Enable copilot in the current buffer without ever breaking other hooks.
+Skips activation when prerequisites (node, the copilot package) are
+missing, and demotes any activation error to a `*Messages*' log entry
+so that the rest of `prog-mode-hook' (font-lock, lsp, etc.) still runs."
+  (when (and (executable-find "node")
+             (require 'copilot nil 'noerror))
+    (with-demoted-errors "copilot-mode failed: %S"
+      (copilot-mode 1))
+    (when (fboundp 'copilot-nes-mode)
+      (with-demoted-errors "copilot-nes-mode failed: %S"
+        (copilot-nes-mode 1)))))
+
 (use-package! copilot
-  :hook ((prog-mode . copilot-mode)
-         (prog-mode . copilot-nes-mode))
+  :hook (prog-mode . my/copilot-safe-turn-on)
   :bind (:map copilot-completion-map
               ("<tab>" . 'copilot-accept-completion)
               ("TAB" . 'copilot-accept-completion)
