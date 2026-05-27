@@ -135,14 +135,20 @@ Interactively, N is the prefix arg."
 
 ;; accept completion from copilot and fallback to company
 (use-package! copilot
-  :hook (prog-mode . copilot-mode)
+  :hook ((prog-mode . copilot-mode)
+         (prog-mode . copilot-nes-mode))
   :bind (:map copilot-completion-map
               ("<tab>" . 'copilot-accept-completion)
               ("TAB" . 'copilot-accept-completion)
               ("C-TAB" . 'copilot-accept-completion-by-word)
               ("C-<tab>" . 'copilot-accept-completion-by-word)
               ("C-n" . 'copilot-next-completion)
-              ("C-p" . 'copilot-previous-completion)))
+              ("C-p" . 'copilot-previous-completion))
+  :config
+  (setq copilot-chat-model "claude-opus-4-7")
+  (add-to-list 'copilot-disable-predicates
+               (lambda () (or (minibufferp)
+                              (derived-mode-p 'vterm-mode)))))
 
 (use-package! bazel-mode
   :defer t
