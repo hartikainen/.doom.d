@@ -184,11 +184,6 @@ Interactively, N is the prefix arg."
 (after! ivy
   (define-key ivy-minibuffer-map (kbd "TAB") #'ivy-partial-or-done))
 
-(after! (projectile persp-mode)
-  (setq projectile-project-search-path '(("~/github" . 2)))
-  ;; (setq +workspaces-switch-project-function #'magit-status)
-  (setq +workspaces-switch-project-function (lambda (&rest _) (call-interactively #'projectile-commander))))
-
 (after! yasnippet
   ;; Define custom yasnippet-related functions
   (defun yas-with-comment (str)
@@ -281,3 +276,7 @@ so that the rest of `prog-mode-hook' (font-lock, lsp, etc.) still runs."
 ;; Workaround: `yaml-ts-mode' (Emacs 29+) does not define `yaml-indent-offset',
 ;; which causes errors in packages like `dtrt-indent' and `editorconfig'.
 (defvar yaml-indent-offset 2 "Fallback for packages expecting yaml-mode variables in yaml-ts-mode.")
+
+(after! projectile
+  (setq projectile-project-search-path '(("~/Development" . 2)
+                                         ("~/Developer" . 2))))
