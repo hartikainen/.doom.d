@@ -181,9 +181,6 @@ Interactively, N is the prefix arg."
 (after! ws-butler
   (setq ws-butler-keep-whitespace-before-point nil))
 
-(after! ivy
-  (define-key ivy-minibuffer-map (kbd "TAB") #'ivy-partial-or-done))
-
 (after! yasnippet
   ;; Define custom yasnippet-related functions
   (defun yas-with-comment (str)
