@@ -155,6 +155,42 @@
                       :foreground "red"
                       :underline t))
 
+;; flymake-popon anchors its popup's LEFT edge at point and draws a fixed-width
+;; block rightward with no clamping, so near the right margin it overflows the
+;; window and the terminal wraps each line ("unwrapping"). Shift the popon left
+;; so its right edge stays within `window-body-width'. Scoped to flymake's own
+;; `popon-create' call via a dynamic flag so other popon users are untouched.
+(after! flymake-popon
+  (defvar +flymake-popon--clamp nil)
+
+  (defadvice! +flymake-popon-clamp-a (fn &rest args)
+    "Enable popon x-clamping for the duration of flymake-popon's display."
+    :around #'flymake-popon--show
+    (let ((+flymake-popon--clamp t))
+      (apply fn args)))
+
+  (defadvice! +flymake-popon-clamp-args-a (args)
+    "Shift flymake's popon left to keep it inside the window's right edge."
+    :filter-args #'popon-create
+    (if (not +flymake-popon--clamp)
+        args
+      (let* ((text (nth 0 args))
+             (pos (nth 1 args))
+             (window (or (nth 2 args) (selected-window)))
+             (str (if (consp text) (car text) text))
+             (width (if (consp text)
+                        (cdr text)
+                      (apply #'max 0 (mapcar #'string-width
+                                             (split-string str "\n")))))
+             (max-x (max 0 (- (window-body-width window) width)))
+             ;; Anchor the popon's RIGHT edge at point so it grows leftward.
+             ;; Tweak the desired column here:
+             ;;   (car pos)           -> left edge at point (extends right)
+             ;;   (- (car pos) width) -> right edge at point (extends left)
+             (desired (- (car pos) width))
+             (x (max 0 (min desired max-x))))
+        (cons text (cons (cons x (cdr pos)) (cddr args)))))))
+
 (after! grep
   (add-to-list 'grep-find-ignored-directories ".venv"))
 
