@@ -78,6 +78,72 @@
 
 (load! "functions.el")
 
+(after! multiple-cursors
+  (dolist (cmd '(;; motion (incl. your custom C-a)
+                 beginning-or-indentation
+                 back-to-indentation
+                 move-beginning-of-line
+                 move-end-of-line
+                 forward-word
+                 backward-word
+                 forward-sexp
+                 backward-sexp
+                 ;; newlines / indentation
+                 newline
+                 newline-and-indent
+                 electric-newline-and-maybe-indent
+                 open-line
+                 indent-for-tab-command
+                 ;; python-specific indent
+                 python-indent-shift-left
+                 python-indent-shift-right
+                 python-indent-dedent-line-backspace
+                 ;; markdown
+                 markdown-outdent-or-delete
+                 ;; kill / delete
+                 kill-line
+                 kill-whole-line
+                 kill-region
+                 kill-ring-save
+                 kill-word
+                 backward-kill-word
+                 delete-char
+                 delete-forward-char
+                 delete-backward-char
+                 ;; yank
+                 yank
+                 yank-pop
+                 ;; transforms
+                 upcase-word
+                 downcase-word
+                 capitalize-word
+                 transpose-chars
+                 transpose-words
+                 ;; comments
+                 comment-line
+                 comment-dwim))
+    (add-to-list 'mc/cmds-to-run-for-all cmd))
+
+  (dolist (cmd '(;; files / buffers / windows
+                 save-buffer
+                 other-window
+                 balance-windows
+                 ;; command dispatch & escape
+                 execute-extended-command
+                 doom/escape
+                 keyboard-escape-quit
+                 keyboard-quit
+                 ;; completion popups should not multiply
+                 completion-at-point
+                 copilot-accept-completion
+                 copilot-accept-completion-by-word
+                 copilot-next-completion
+                 copilot-previous-completion
+                 ;; undo/redo behaves better as a single global operation
+                 undo-fu-only-undo
+                 undo-fu-only-redo))
+    (add-to-list 'mc/cmds-to-run-once cmd)))
+
 
 (after! conda
   (setq conda-env-home-directory (expand-file-name "~/conda/")
