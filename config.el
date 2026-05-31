@@ -169,8 +169,7 @@ Interactively, N is the prefix arg."
   (interactive "P")
   (let ((previous-point (point)))
     (back-to-indentation)
-    (if (equal (point) previous-point) (move-beginning-of-line 1)))
-  )
+    (if (equal (point) previous-point) (move-beginning-of-line 1))))
 
 (map! :gi "C-a" #'beginning-or-indentation)
 
