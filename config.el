@@ -272,6 +272,105 @@ so that the rest of `prog-mode-hook' (font-lock, lsp, etc.) still runs."
 ;; which causes errors in packages like `dtrt-indent' and `editorconfig'.
 (defvar yaml-indent-offset 2 "Fallback for packages expecting yaml-mode variables in yaml-ts-mode.")
 
+(after! tramp
+  (setq tramp-verbose 1)  ;; Quiet TRAMP down
+  (setq tramp-default-remote-shell "/bin/sh")
+  (setq tramp-use-ssh-controlmaster-options nil) ;; Use your ~/.ssh/config settings instead
+  ;; Disable version control (VC) on remote files to stop TRAMP from checking Git status constantly.
+  ;; Guard so repeated `doom/reload's don't keep appending the same regexp.
+  (unless (string-match-p (regexp-quote tramp-file-name-regexp) vc-ignore-dir-regexp)
+    (setq vc-ignore-dir-regexp
+          (format "%s\\|%s" vc-ignore-dir-regexp tramp-file-name-regexp)))
+  ;; Enable direct async processes for ALL TRAMP connections. This is the big
+  ;; win for magit/compile/LSP, which spawn many short-lived remote processes;
+  ;; without it each one pays for a fresh remote shell.
+  (connection-local-set-profile-variables
+   'tramp-fast-connection
+   '((tramp-direct-async-process . t)))
+  (connection-local-set-profiles
+   '(:application tramp)
+   'tramp-fast-connection)
+  ;; Keep temp files on the remote's /tmp instead of copying them back to the
+  ;; Mac. Scoped to the eka hosts (the machines actually in use).
+  (add-to-list 'tramp-connection-properties
+               (list "eka-" "tmpdir" "/tmp")))
+
+(defun my-tramp-optimization-hacks ()
+  "Disable expensive UI features in TRAMP buffers."
+  (when (file-remote-p default-directory)
+    ;; 1. Disable Flymake/Flycheck (syntax checking)
+    (flymake-mode -1)
+    (when (fboundp 'flycheck-mode) (flycheck-mode -1))
+
+    ;; 2. Disable Copilot (huge source of lag on remote)
+    (when (fboundp 'copilot-mode) (copilot-mode -1))
+
+    ;; 3. Disable Eldoc (the little help messages in the bottom bar)
+    (eldoc-mode -1)
+
+    ;; 4. Stop LSP from trying to manage the remote file if it's slow
+    ;; (Optional: only if you still see jsonrpc in the profiler)
+    ;; (lsp-disconnect)
+    ))
+
+;; Apply these hacks every time a new file is opened
+(add-hook 'find-file-hook #'my-tramp-optimization-hacks)
+
+(after! recentf
+  ;; Keep remote files in the recent list WITHOUT stat-ing them. Otherwise
+  ;; recentf's periodic cleanup tries to connect to every remembered remote
+  ;; host; a slow/unreachable one then blocks Emacs for seconds at a time.
+  (add-to-list 'recentf-keep 'file-remote-p))
+
+(after! gcmh
+  (setq gcmh-idle-delay 'auto  ; Let it decide when to GC
+        gcmh-high-read-threshold (* 128 1024 1024))) ; 128MB
+
+(after! doom-modeline
+  ;; Disable project detection in the modeline (major source of lag)
+  (setq doom-modeline-project-detection nil))
+
 (after! projectile
   (setq projectile-project-search-path '(("~/Development" . 2)
-                                         ("~/Developer" . 2))))
+                                         ("~/Developer" . 2)))
+  ;; Stop projectile from trying to index your whole remote home directory
+  (setq projectile-file-exists-remote-cache-expire nil))
+
+(defun my/disable-magit-auto-revert-mode ()
+  "Turn off the globalized `magit-auto-revert-mode'.
+A plain `setq' can't tear down the mode's hooks, and magit may defer
+activation to `after-init-hook', so this is called both on load and
+(appended) on `after-init-hook' to be order-independent."
+  (when (fboundp 'magit-auto-revert-mode)
+    (magit-auto-revert-mode -1)))
+
+(defun my/magit-lighten-remote-status ()
+  "Drop git-call-heavy, low-value status sections for remote repos.
+Magit over TRAMP pays a network round-trip per `git' call; in the common
+case (no rebase/am/bisect/stash in progress) these sections produce
+nothing yet cost ~1s combined. Applied buffer-locally so local repos
+keep the full status."
+  (when (file-remote-p default-directory)
+    (setq-local
+     magit-status-sections-hook
+     (cl-remove-if
+      (lambda (fn)
+        (memq fn '(magit-insert-merge-log
+                   magit-insert-rebase-sequence
+                   magit-insert-am-sequence
+                   magit-insert-sequencer-sequence
+                   magit-insert-bisect-output
+                   magit-insert-bisect-rest
+                   magit-insert-bisect-log
+                   magit-insert-stashes
+                   magit-insert-unpushed-to-pushremote
+                   magit-insert-unpushed-to-upstream-or-recent
+                   magit-insert-unpulled-from-pushremote
+                   magit-insert-unpulled-from-upstream)))
+      magit-status-sections-hook))))
+
+(after! magit
+  (setq magit-refresh-status-buffer nil)
+  (my/disable-magit-auto-revert-mode)
+  (add-hook 'after-init-hook #'my/disable-magit-auto-revert-mode 100)
+  (add-hook 'magit-status-mode-hook #'my/magit-lighten-remote-status))
