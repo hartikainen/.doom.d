@@ -236,9 +236,10 @@ so that the rest of `prog-mode-hook' (font-lock, lsp, etc.) still runs."
   ;; Pin formatting to ruff (sort imports, then format). Set explicitly so
   ;; eglot/`ty' doesn't take over formatting via `+format-with-lsp-toggle-h'.
   (setq-hook! '(python-mode-hook python-ts-mode-hook)
-    +format-with '(ruff-isort ruff)))
-
-(set-eglot-client! '(python-mode python-ts-mode) '("ty" "server"))
+    +format-with '(ruff-isort ruff))
+  ;; Prefer `ty' over other installed servers (e.g. pyright), which would
+  ;; otherwise win via eglot's default `eglot-server-programs' ordering.
+  (set-eglot-client! '(python-mode python-ts-mode) '("ty" "server")))
 
 (use-package! gptel
   :config
