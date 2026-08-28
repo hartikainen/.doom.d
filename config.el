@@ -374,4 +374,12 @@ keep the full status."
   (setq magit-refresh-status-buffer nil)
   (my/disable-magit-auto-revert-mode)
   (add-hook 'after-init-hook #'my/disable-magit-auto-revert-mode 100)
+  (add-hook! 'magit-mode-hook
+    (setq-local
+     search-invisible nil
+     isearch-filter-predicate
+     (lambda (beg end)
+       (if search-invisible
+           (magit-section--open-temporarily beg end)
+         (isearch-filter-visible beg end)))))
   (add-hook 'magit-status-mode-hook #'my/magit-lighten-remote-status))
