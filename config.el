@@ -232,7 +232,7 @@ so that the rest of `prog-mode-hook' (font-lock, lsp, etc.) still runs."
   (appendq! +format-on-save-enabled-modes '(bazel-mode)))
 
 (after! python
-  (add-hook! 'python-mode-hook #'flymake-ruff-load)
+  (add-hook! '(python-mode-hook python-ts-mode-hook) #'flymake-ruff-load)
   ;; Pin formatting to ruff (sort imports, then format). Set explicitly so
   ;; eglot/`ty' doesn't take over formatting via `+format-with-lsp-toggle-h'.
   (setq-hook! '(python-mode-hook python-ts-mode-hook)
