@@ -215,7 +215,7 @@ so that the rest of `prog-mode-hook' (font-lock, lsp, etc.) still runs."
               ("C-n" . 'copilot-next-completion)
               ("C-p" . 'copilot-previous-completion))
   :config
-  (setq copilot-chat-model "claude-opus-4-7")
+  (setq copilot-chat-model "gemini-3.8-flash")
   (add-to-list 'copilot-disable-predicates
                (lambda () (or (minibufferp)
                               (derived-mode-p 'vterm-mode)))))
