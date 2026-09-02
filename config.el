@@ -370,8 +370,41 @@ keep the full status."
                    magit-insert-unpulled-from-upstream)))
       magit-status-sections-hook))))
 
+(defun my/magit-push-stack (remote base args)
+  "Push every local branch between BASE and HEAD to REMOTE atomically.
+The stack is every local branch whose tip is reachable from HEAD but not
+from BASE, so a stale branch parked inside that range rides along too.
+With a prefix argument, read BASE instead of deriving it from the main
+branch."
+  (interactive
+   (list (magit-read-remote "Push stack to remote" nil t)
+         (if current-prefix-arg
+             (magit-read-other-branch-or-commit "Stack base")
+           (or (magit-get-upstream-branch (magit-main-branch))
+               (magit-main-branch)))
+         (magit-push-arguments)))
+  (let ((branches (magit-git-lines "branch" "--format=%(refname:short)"
+                                   "--merged" "HEAD" "--no-merged" base)))
+    (unless branches
+      (user-error "No branch between %s and HEAD" base))
+    (run-hooks 'magit-credential-hook)
+    (magit-run-git-async
+     "push" "-v" "--atomic" (delete "--atomic" args) remote
+     ;; Git refuses an unqualified destination that does not already exist
+     ;; on the remote, and a stack pushes new branches by definition.
+     (mapcar (lambda (branch)
+               (format "refs/heads/%s:refs/heads/%s" branch branch))
+             branches))))
+
 (after! magit
   (setq magit-refresh-status-buffer nil)
+  ;; Removing first keeps a config reload from stacking duplicate suffixes.
+  (transient-remove-suffix 'magit-push "-a")
+  (transient-append-suffix 'magit-push "-h"
+    '("-a" "Atomic" "--atomic"))
+  (transient-remove-suffix 'magit-push #'my/magit-push-stack)
+  (transient-append-suffix 'magit-push "m"
+    '("s" "current stack" my/magit-push-stack))
   (my/disable-magit-auto-revert-mode)
   (add-hook 'after-init-hook #'my/disable-magit-auto-revert-mode 100)
   (add-hook! 'magit-mode-hook
