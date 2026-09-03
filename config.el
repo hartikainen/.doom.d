@@ -370,21 +370,39 @@ keep the full status."
                    magit-insert-unpulled-from-upstream)))
       magit-status-sections-hook))))
 
+(defun my/magit-stack-base ()
+  "Return the revision the current stack is based on."
+  (or (magit-get-upstream-branch (magit-main-branch))
+      (magit-main-branch)))
+
+(defun my/magit-stack-branches (base)
+  "Return the local branches reachable from HEAD but not from BASE.
+Ordered by commit distance from BASE, which is bottom-to-tip order while
+the branches form a chain.  A stale branch parked inside that range is
+indistinguishable from a member of the stack and rides along."
+  (let ((branches (magit-git-lines "branch" "--format=%(refname:short)"
+                                   "--merged" "HEAD" "--no-merged" base)))
+    (mapcar #'cdr
+            (sort (mapcar (lambda (branch)
+                            (cons (string-to-number
+                                   (or (magit-git-string "rev-list" "--count"
+                                                         (concat base ".." branch))
+                                       "0"))
+                                  branch))
+                          branches)
+                  :key #'car :lessp #'<))))
+
 (defun my/magit-push-stack (remote base args)
   "Push every local branch between BASE and HEAD to REMOTE atomically.
-The stack is every local branch whose tip is reachable from HEAD but not
-from BASE, so a stale branch parked inside that range rides along too.
 With a prefix argument, read BASE instead of deriving it from the main
 branch."
   (interactive
    (list (magit-read-remote "Push stack to remote" nil t)
          (if current-prefix-arg
              (magit-read-other-branch-or-commit "Stack base")
-           (or (magit-get-upstream-branch (magit-main-branch))
-               (magit-main-branch)))
+           (my/magit-stack-base))
          (magit-push-arguments)))
-  (let ((branches (magit-git-lines "branch" "--format=%(refname:short)"
-                                   "--merged" "HEAD" "--no-merged" base)))
+  (let ((branches (my/magit-stack-branches base)))
     (unless branches
       (user-error "No branch between %s and HEAD" base))
     (run-hooks 'magit-credential-hook)
