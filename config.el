@@ -334,6 +334,7 @@ so that the rest of `prog-mode-hook' (font-lock, lsp, etc.) still runs."
   (setq doom-modeline-project-detection nil))
 
 (after! projectile
+  (setq projectile-kill-buffers-filter 'kill-all)
   (setq projectile-project-search-path '(("~/Development" . 2)
                                          ("~/Developer" . 2)))
   ;; Stop projectile from trying to index your whole remote home directory
