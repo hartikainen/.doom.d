@@ -155,6 +155,8 @@
                       :foreground "red"
                       :underline t))
 
+;; Flymake's macros must be available before Doom's Lisp helpers load.
+(require 'flymake)
 ;; Disable flymake-popon's at-point popup (didn't like how it rendered in the
 ;; terminal). Diagnostics still show in the echo area via eldoc and in the list
 ;; from `flymake-show-buffer-diagnostics'.
