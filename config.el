@@ -428,17 +428,17 @@ answers nil throughout."
   (and branch
        (fboundp 'forge-db)
        (forge-db t)
-       (or (forge-get-pullreq :branch branch)
-           (let* ((repo (forge-get-repository :tracked?))
-                  (id (and repo
-                           (forge-sql1 [:select id :from pullreq
-                                        :where (and (= repository $s1)
-                                                    (= head-ref $s2))
-                                        :order-by [(desc number)]
-                                        :limit 1]
-                                       (oref repo id)
-                                       branch))))
-             (and id (forge-get-pullreq id))))))
+       (let ((repo (forge-get-repository :tracked?)))
+         (and repo
+              (or (forge-get-pullreq :branch branch)
+                  (let ((id (forge-sql1 [:select id :from pullreq
+                                       :where (and (= repository $s1)
+                                                   (= head-ref $s2))
+                                       :order-by [(desc number)]
+                                       :limit 1]
+                                      (oref repo id)
+                                      branch)))
+                    (and id (forge-get-pullreq id))))))))
 
 (defun my/forge-branch-pullreq-slug (branch)
   "Return the slug of BRANCH's pull-request, or nil.
