@@ -419,32 +419,128 @@ branch."
              branches))))
 
 (defun my/forge-branch-pullreq (branch)
-  "Return the pull-request whose head is BRANCH, or nil.
-Reads the `branch.BRANCH.pullRequest' setting forge writes for the
-branches it creates, then falls back to the head branch recorded in
-forge's database, which also covers pull-requests opened outside Emacs.
-The database is the only source, so an untracked or unpulled repository
-answers nil throughout."
+  "Return the cached open pull-request for `BRANCH`, or `nil`.
+Match remote branches against their source repository.  Local branches
+use their push destination, with `branch.BRANCH.pullRequest`
+taking precedence."
   (and branch
        (fboundp 'forge-db)
        (forge-db t)
-       (let ((repo (forge-get-repository :tracked?)))
-         (and repo
-              (or (forge-get-pullreq :branch branch)
-                  (let ((id (forge-sql1 [:select id :from pullreq
-                                       :where (and (= repository $s1)
-                                                   (= head-ref $s2))
-                                       :order-by [(desc number)]
-                                       :limit 1]
-                                      (oref repo id)
-                                      branch)))
-                    (and id (forge-get-pullreq id))))))))
+       (magit--with-refresh-cache
+           (list default-directory 'my/forge-branch-pullreq branch)
+         (when-let* ((repo (forge-get-repository :known? nil t))
+                     (parts (ignore-errors (magit-split-branch-name branch))))
+           (pcase-let* ((`(,remote . ,name) parts)
+                        (rows
+                         (magit--with-refresh-cache
+                             (list default-directory 'my/forge-open-pullreqs)
+                           (forge-sql
+                            [:select [id number head-ref head-repo]
+                             :from pullreq
+                             :where (and (= repository $s1) (= state $s2))
+                             :order-by [(desc number)]]
+                            (oref repo id) 'open)))
+                        (settings
+                         (magit--with-refresh-cache
+                             (list default-directory 'my/forge-pullreq-settings)
+                           (mapcar #'split-string
+                                   (magit-git-lines
+                                    "config" "--get-regexp"
+                                    "^branch\\..*\\.pullrequest$"))))
+                        (number (and (equal remote ".")
+                                     (cadr (assoc (format "branch.%s.pullrequest" name)
+                                                  settings))))
+                        (row (and number
+                                  (seq-find (lambda (row)
+                                              (= (nth 1 row)
+                                                 (string-to-number number)))
+                                            rows))))
+             (unless row
+               (when-let* ((candidates
+                            (seq-filter (lambda (row) (equal (nth 2 row) name)) rows))
+                           (source-remote
+                            (if (equal remote ".")
+                                (or (magit-get-push-remote name)
+                                    (magit-get-remote name)
+                                    (oref repo remote))
+                              remote))
+                           (source
+                            (magit--with-refresh-cache
+                                (list default-directory 'my/forge-source
+                                      source-remote (equal remote "."))
+                              (forge-get-repository
+                               (magit-git-string "remote" "get-url"
+                                                 (and (equal remote ".") "--push")
+                                                 source-remote)
+                               nil :stub?)))
+                           (_ (equal (oref source forge) (oref repo forge))))
+                 (let ((slug (downcase (concat (oref source owner) "/"
+                                              (oref source name)))))
+                   (setq row
+                         (seq-find (lambda (row)
+                                     (and (nth 3 row)
+                                          (equal (downcase (nth 3 row)) slug)))
+                                   candidates)))))
+             (and row (forge-get-pullreq (car row))))))))
 
 (defun my/forge-branch-pullreq-slug (branch)
-  "Return the slug of BRANCH's pull-request, or nil.
-The slug carries a face for the pull-request's state and read status."
+  "Return a linked open PR number for `BRANCH`, styled for draft status."
   (let ((pullreq (my/forge-branch-pullreq branch)))
-    (and pullreq (forge--format-topic-slug pullreq))))
+    (when pullreq
+      (let* ((slug (forge--format-topic-slug pullreq))
+             (draft (oref pullreq draft-p))
+             (url (forge-get-url pullreq))
+             (face (get-text-property 0 'face slug)))
+        (when draft
+          (setq face (cons 'forge-pullreq-draft (ensure-list face))))
+        (make-text-button
+         (magit--propertize-face slug face) nil
+         'face face
+         'follow-link t
+         'my/forge-pullreq-button-map button-map
+         'button-data url
+         'action #'browse-url
+         'help-echo (format "%s: %s\n%s"
+                            (if draft "Draft pull request" "Pull request")
+                            (oref pullreq title) url))))))
+
+(defun my/magit-restore-pullreq-button-maps (section)
+  "Restore PR link bindings after Magit assigns `SECTION` keymaps."
+  (with-silent-modifications
+    (let ((position (oref section start))
+          (limit (oref section end)))
+      (while (< position limit)
+        (let ((end (next-single-property-change
+                    position 'my/forge-pullreq-button-map nil limit)))
+          (when-let* ((map (get-text-property position 'my/forge-pullreq-button-map)))
+            (put-text-property position end 'keymap map))
+          (setq position end))))))
+
+(defun my/magit-branch-with-pullreq (label &optional branch)
+  "Append the cached PR number to `LABEL` for `BRANCH`."
+  (if-let* ((slug (my/forge-branch-pullreq-slug
+                  (or branch (substring-no-properties label)))))
+      (concat label
+              (magit--propertize-face " (" 'magit-dimmed)
+              slug
+              (magit--propertize-face ")" 'magit-dimmed))
+    label))
+
+(defun my/magit-log-annotate-pullreqs (labels)
+  "Add cached PR numbers to the branch `LABELS` in a Magit log."
+  (save-match-data
+    (mapconcat
+     (lambda (label)
+       (if (seq-some
+            (lambda (face)
+              (memq face '(magit-branch-local magit-branch-current
+                           magit-branch-remote magit-branch-remote-head
+                           magit-branch-upstream)))
+            (ensure-list (get-text-property 0 'face label)))
+           (my/magit-branch-with-pullreq label)
+         label))
+     (split-string labels " " t)
+     " ")))
 
 (defun my/magit-insert-branch-pullreq-header ()
   "Insert a header for the pull-request whose head is the current branch."
@@ -453,48 +549,41 @@ The slug carries a face for the pull-request's state and read status."
     (when pullreq
       (magit-insert-section (pullreq pullreq)
         (insert (format "%-10s" "Pull req:"))
-        (insert (forge--format-topic-slug pullreq) ?\s)
+        (insert (my/forge-branch-pullreq-slug branch) ?\s)
         (insert (oref pullreq title) ?\n)))))
 
 (defun my/magit-insert-stack-pullreqs ()
-  "Insert a section listing the stack's branches and their pull-requests.
-Only a stack of two or more branches gets a section, since the header
-already covers a single branch."
+  "List stack branches beside their cached open PR numbers.
+The branch header covers stacks without an intermediate branch."
   (let* ((base (my/magit-stack-base))
          (branches (and base (my/magit-stack-branches base))))
     (when (cdr branches)
-      (let* ((current (magit-get-current-branch))
-             (rows (mapcar (lambda (branch)
-                             (cons branch (my/forge-branch-pullreq-slug branch)))
-                           branches))
-             (width (apply #'max 2 (mapcar (lambda (row)
-                                             (length (or (cdr row) "")))
-                                           rows))))
+      (let ((current (magit-get-current-branch)))
         (magit-insert-section (stack base)
           (magit-insert-heading
             (concat (magit--propertize-face "Stack " 'magit-section-heading)
-                    (magit--propertize-face (format "(%s)" (length rows))
+                    (magit--propertize-face (format "(%s)" (length branches))
                                             'magit-section-child-count)))
-          (dolist (row rows)
-            (magit-insert-section (branch (car row))
-              (insert (string-pad (or (cdr row) "") width) ?\s)
-              (insert (magit--propertize-face (car row)
-                                              (if (equal (car row) current)
+          (dolist (branch (reverse branches))
+            (magit-insert-section (branch branch)
+              (insert "  "
+                      (my/magit-branch-with-pullreq
+                       (magit--propertize-face branch
+                                              (if (equal branch current)
                                                   'magit-branch-current
                                                 'magit-branch-local))
+                       branch)
                       ?\n)))
           (insert ?\n))))))
 
 (defun my/magit-refs-annotate-pullreq (line)
-  "Prefix the message column of a `magit-refs' branch LINE with its slug.
-LINE is nil for a filtered ref and its last element is the column that
-`magit-refs--format-local-branches' leaves unpadded."
-  (let* ((branch (and (consp line) (nth 1 line)))
-         (slug (and branch (my/forge-branch-pullreq-slug branch))))
-    (when slug
-      (let ((last (1- (length line))))
-        (setf (nth last line) (concat slug " " (nth last line)))))
-    line))
+  "Add a PR label to `LINE` and account for its branch column width."
+  (when-let* ((branch (and (consp line) (nth 1 line))))
+    (let* ((label (nth 3 line))
+           (annotated (my/magit-branch-with-pullreq label branch)))
+      (cl-incf (car line) (- (length annotated) (length label)))
+      (setf (nth 3 line) annotated)))
+  line)
 
 (after! magit
   (setq magit-refresh-status-buffer nil)
@@ -518,6 +607,10 @@ LINE is nil for a filtered ref and its last element is the column that
   (add-hook 'magit-status-mode-hook #'my/magit-lighten-remote-status))
 
 (after! forge
+  (advice-add 'magit-section-maybe-add-heading-map :after
+              #'my/magit-restore-pullreq-button-maps)
+  (advice-add 'magit-section-maybe-remove-heading-map :after
+              #'my/magit-restore-pullreq-button-maps)
   (magit-add-section-hook 'magit-status-headers-hook
                           #'my/magit-insert-branch-pullreq-header
                           #'magit-insert-head-branch-header
@@ -527,4 +620,6 @@ LINE is nil for a filtered ref and its last element is the column that
                           #'magit-insert-unpushed-to-upstream-or-recent
                           'append)
   (advice-add 'magit-refs--format-local-branch :filter-return
-              #'my/magit-refs-annotate-pullreq))
+              #'my/magit-refs-annotate-pullreq)
+  (advice-add 'magit-format-ref-labels :filter-return
+              #'my/magit-log-annotate-pullreqs))
