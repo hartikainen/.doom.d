@@ -587,6 +587,9 @@ The branch header covers stacks without an intermediate branch."
 
 (after! magit
   (setq magit-refresh-status-buffer nil)
+  (setf (alist-get 'stashes magit-section-initial-visibility-alist) 'hide)
+  (magit-add-section-hook 'magit-status-sections-hook
+                          #'magit-insert-stashes nil t)
   ;; Removing first keeps a config reload from stacking duplicate suffixes.
   (transient-remove-suffix 'magit-push "-a")
   (transient-append-suffix 'magit-push "-h"
@@ -619,6 +622,8 @@ The branch header covers stacks without an intermediate branch."
                           #'my/magit-insert-stack-pullreqs
                           #'magit-insert-unpushed-to-upstream-or-recent
                           'append)
+  (magit-add-section-hook 'magit-status-sections-hook
+                          #'magit-insert-stashes nil t)
   (advice-add 'magit-refs--format-local-branch :filter-return
               #'my/magit-refs-annotate-pullreq)
   (advice-add 'magit-format-ref-labels :filter-return
