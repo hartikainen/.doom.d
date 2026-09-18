@@ -425,7 +425,7 @@ use their push destination, with `branch.BRANCH.pullRequest`
 taking precedence."
   (and branch
        (fboundp 'forge-db)
-       (forge-db t)
+       (forge-db)
        (magit--with-refresh-cache
            (list default-directory 'my/forge-branch-pullreq branch)
          (when-let* ((repo (forge-get-repository :known? nil t))
@@ -462,20 +462,20 @@ taking precedence."
                             (if (equal remote ".")
                                 (or (magit-get-push-remote name)
                                     (magit-get-remote name)
-                                    (oref repo remote))
+                                    (forge--get-remote))
                               remote))
                            (source
                             (magit--with-refresh-cache
                                 (list default-directory 'my/forge-source
                                       source-remote (equal remote "."))
-                              (forge-get-repository
-                               (magit-git-string "remote" "get-url"
-                                                 (and (equal remote ".") "--push")
-                                                 source-remote)
-                               nil :stub?)))
-                           (_ (equal (oref source forge) (oref repo forge))))
-                 (let ((slug (downcase (concat (oref source owner) "/"
-                                              (oref source name)))))
+                              ;; Source matching must not change Forge's stored remote.
+                              (when-let* ((url (magit-git-string
+                                               "remote" "get-url"
+                                               (and (equal remote ".") "--push")
+                                               source-remote)))
+                                (forge--split-forge-url url))))
+                           (_ (equal (car source) (oref repo forge))))
+                 (let ((slug (downcase (concat (cadr source) "/" (caddr source)))))
                    (setq row
                          (seq-find (lambda (row)
                                      (and (nth 3 row)
