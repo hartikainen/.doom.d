@@ -609,6 +609,14 @@ The branch header covers stacks without an intermediate branch."
          (isearch-filter-visible beg end)))))
   (add-hook 'magit-status-mode-hook #'my/magit-lighten-remote-status))
 
+(after! magit-worktree
+  (setq magit-read-worktree-directory-function
+        (lambda (prompt branch)
+          (let* ((main-worktree (caar (magit-list-worktrees)))
+                 (parent (file-name-directory
+                          (directory-file-name main-worktree))))
+            (read-directory-name prompt parent nil nil branch)))))
+
 (after! forge
   (advice-add 'magit-section-maybe-add-heading-map :after
               #'my/magit-restore-pullreq-button-maps)
