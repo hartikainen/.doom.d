@@ -244,6 +244,7 @@ so that the rest of `prog-mode-hook' (font-lock, lsp, etc.) still runs."
   (set-eglot-client! '(python-mode python-ts-mode) '("ty" "server")))
 
 (use-package! gptel
+  ;; :after (magit forge)
   :config
   (setq auth-sources '("~/.authinfo.gpg" "~/.authinfo"))
 
@@ -279,6 +280,8 @@ so that the rest of `prog-mode-hook' (font-lock, lsp, etc.) still runs."
   (setq tramp-verbose 1)  ;; Quiet TRAMP down
   (setq tramp-default-remote-shell "/bin/sh")
   (setq tramp-use-ssh-controlmaster-options nil) ;; Use your ~/.ssh/config settings instead
+  ;; Increase data transfer chunk size
+  (setq tramp-chunksize 2000)
   ;; Disable version control (VC) on remote files to stop TRAMP from checking Git status constantly.
   ;; Guard so repeated `doom/reload's don't keep appending the same regexp.
   (unless (string-match-p (regexp-quote tramp-file-name-regexp) vc-ignore-dir-regexp)
@@ -293,6 +296,9 @@ so that the rest of `prog-mode-hook' (font-lock, lsp, etc.) still runs."
   (connection-local-set-profiles
    '(:application tramp)
    'tramp-fast-connection)
+  (add-to-list 'tramp-connection-properties
+               (list (regexp-quote "workstation-kristian")
+                     "tmpdir" "/tmp"))
   ;; Keep temp files on the remote's /tmp instead of copying them back to the
   ;; Mac. Scoped to the eka hosts (the machines actually in use).
   (add-to-list 'tramp-connection-properties
@@ -330,6 +336,7 @@ so that the rest of `prog-mode-hook' (font-lock, lsp, etc.) still runs."
         gcmh-high-read-threshold (* 128 1024 1024))) ; 128MB
 
 (after! doom-modeline
+  (setq doom-modeline-vcs-max-length 0) ;; Disable remote VCS checks
   ;; Disable project detection in the modeline (major source of lag)
   (setq doom-modeline-project-detection nil))
 
@@ -628,3 +635,19 @@ The branch header covers stacks without an intermediate branch."
               #'my/magit-refs-annotate-pullreq)
   (advice-add 'magit-format-ref-labels :filter-return
               #'my/magit-log-annotate-pullreqs))
+
+;; Workaround for Emacs 31 TTY child frame bug where make-frame-invisible fails
+;; and leaves artifacts in the terminal.
+;; Reference: https://github.com/minad/corfu/issues/606
+(with-eval-after-load 'corfu
+  (defun corfu--hide-frame-deferred (frame)
+    "Deferred hiding of child FRAME."
+    (when (and (frame-live-p frame) (frame-visible-p frame))
+      (set-frame-parameter frame 'corfu--hide-timer nil)
+      (if (display-graphic-p)
+          (make-frame-invisible frame)
+        (delete-frame frame))
+      (when (frame-live-p frame)
+        (with-current-buffer (window-buffer (frame-root-window frame))
+          (with-silent-modifications
+            (delete-region (point-min) (point-max))))))))
