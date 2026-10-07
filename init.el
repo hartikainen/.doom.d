@@ -1,5 +1,19 @@
 ;;; init.el -*- lexical-binding: t; -*-
 
+;; Emacs 32's legacy `make-autoload' alias requires a source file argument.
+;; Remove this adapter when Doom stops using the legacy autoload generator.
+;; https://github.com/emacs-mirror/emacs/blob/be34fc99d6a8/lisp/obsolete/autoload.el#L98
+(with-eval-after-load 'autoload
+  (when (= (car (func-arity #'make-autoload)) 3)
+    (defun +autoload-with-source-file-a (fn file &rest args)
+      (let ((make-autoload-function (symbol-function 'make-autoload)))
+        (cl-letf (((symbol-function 'make-autoload)
+                   (lambda (form load-name &optional expansion)
+                     (funcall make-autoload-function
+                              form load-name file expansion))))
+          (apply fn file args))))
+    (advice-add 'doom-loaddefs--scan-file :around #'+autoload-with-source-file-a)))
+
 ;; This file controls what Doom modules are enabled and what order they load
 ;; in. Remember to run 'doom sync' after modifying it!
 
@@ -31,7 +45,7 @@
        :ui
        ;;deft              ; notational velocity for Emacs
        doom              ; what makes DOOM look the way it does
-       doom-dashboard    ; a nifty splash screen for Emacs
+       dashboard         ; a nifty splash screen for Emacs
        ;;doom-quit         ; DOOM quit-message prompts when you quit Emacs
        (emoji +unicode)  ; 🙂
        hl-todo           ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
